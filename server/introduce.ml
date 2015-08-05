@@ -15,8 +15,6 @@ open Lwt
 open Xenstore
 open Domain
 
-(*
-
 let (stream: address Lwt_stream.t), introduce_fn = Lwt_stream.create ()
 
 let root = "/tool/xenstored/connection/domain"
@@ -74,8 +72,8 @@ let _ =
   ls () >>= fun existing ->
   List.iter (fun x -> introduce_fn (Some x)) existing;
   return ()
-*)
 
+(*
 let introduce _ = return ()
 let forget _ = fail (Failure "forget")
-let stream, _ = Lwt_stream.create()
+let stream, _ = Lwt_stream.create() *)

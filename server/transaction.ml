@@ -11,7 +11,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *)
-(*
 open Sexplib.Std
 open Lwt
 
@@ -25,20 +24,20 @@ let test_eagain = ref false
 type 'view side_effects = {
   view: (module VIEW with type t = 'view);
 
-        (* A log of all the store updates in this transaction. When the transaction
-           is committed, these paths need to be committed to stable storage.
-           The list is stored in reverse order for constant-{time,space} append. *)
-        mutable updates: Store.update list;
-        (* A log of updates which should generate a watch events. Note this can't
-           be derived directly from [updates] above because implicit directory
-           creates don't generate watches (for no good reason) *)
-	mutable watches: (Protocol.Op.t * Protocol.Name.t) list;
-        (* A list of introduced domains *)
-        mutable domains: Domain.address list;
-        (* A list of all new watches registered during the transaction *)
-        mutable watch: (Protocol.Name.t * string) list;
-        (* A list of all the watches unregistered during the transaction *)
-        mutable unwatch: (Protocol.Name.t * string) list;
+  (* A log of all the store updates in this transaction. When the transaction
+     is committed, these paths need to be committed to stable storage.
+     The list is stored in reverse order for constant-{time,space} append. *)
+  mutable updates: Store.update list;
+  (* A log of updates which should generate a watch events. Note this can't
+     be derived directly from [updates] above because implicit directory
+     creates don't generate watches (for no good reason) *)
+  mutable watches: (Protocol.Op.t * Protocol.Name.t) list;
+  (* A list of introduced domains *)
+  mutable domains: Domain.address list;
+  (* A list of all new watches registered during the transaction *)
+  mutable watch: (Protocol.Name.t * string) list;
+  (* A list of all the watches unregistered during the transaction *)
+  mutable unwatch: (Protocol.Name.t * string) list;
 } (*with sexp*)
 
 let no_side_effects () =
@@ -78,12 +77,12 @@ type 'view t = {
 
 let make id store =
   no_side_effects () >>= fun side_effects ->
-	return {
+  return {
     id; immediate = id = none;
-		store = if id = none then store else Store.copy store;
+    store = if id = none then store else Store.copy store;
     side_effects;
-		operations = [];
-	}
+    operations = [];
+  }
 
 let take_snapshot store =
   no_side_effects () >>= fun side_effects ->
@@ -114,35 +113,34 @@ let unwatch t name token =
 let get_operations t = List.rev t.operations
 
 let mkdir t limits creator perm path =
-        if not (Store.exists t.store path) then (
-                Protocol.Path.iter (fun prefix ->
-                        if not(Store.exists t.store prefix) then begin
-                                let update = Store.mkdir t.store limits creator perm prefix in
-                                if t.immediate then t.side_effects.updates <- update :: t.side_effects.updates;
-                                (* no watches for implicitly created directories *)
-                        end
-                ) path;
-                watchevent t Protocol.Op.Mkdir path
-        )
+  if not (Store.exists t.store path) then (
+    Protocol.Path.iter (fun prefix ->
+        if not(Store.exists t.store prefix) then begin
+          let update = Store.mkdir t.store limits creator perm prefix in
+          if t.immediate then t.side_effects.updates <- update :: t.side_effects.updates;
+          (* no watches for implicitly created directories *)
+        end
+      ) path;
+    watchevent t Protocol.Op.Mkdir path
+  )
 
 let write t limits creator perm path value =
-        mkdir t limits creator perm (Protocol.Path.dirname path);
-        let update = Store.write t.store limits creator perm path value in
-        if t.immediate then t.side_effects.updates <- update :: t.side_effects.updates;
-        watchevent t Protocol.Op.Write path
+  mkdir t limits creator perm (Protocol.Path.dirname path);
+  let update = Store.write t.store limits creator perm path value in
+  if t.immediate then t.side_effects.updates <- update :: t.side_effects.updates;
+  watchevent t Protocol.Op.Write path
 
 let setperms t perm path perms =
-        let update = Store.setperms t.store perm path perms in
-        if t.immediate then t.side_effects.updates <- update :: t.side_effects.updates;
-	watchevent t Protocol.Op.Setperms path
+  let update = Store.setperms t.store perm path perms in
+  if t.immediate then t.side_effects.updates <- update :: t.side_effects.updates;
+  watchevent t Protocol.Op.Setperms path
 
 let rm t perm path =
-        let updates = Store.rm t.store perm path in
-        if t.immediate then t.side_effects.updates <- updates @ t.side_effects.updates;
-	watchevent t Protocol.Op.Rm path
+  let updates = Store.rm t.store perm path in
+  if t.immediate then t.side_effects.updates <- updates @ t.side_effects.updates;
+  watchevent t Protocol.Op.Rm path
 
 let exists t perms path = Store.exists t.store path
 let ls t perm path = Store.ls t.store perm path
 let read t perm path = Store.read t.store perm path
 let getperms t perm path = Store.getperms t.store perm path
-*)

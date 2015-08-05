@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *)
-(*
+
 open Sexplib
 open Lwt
 open Xenstore
@@ -54,23 +54,23 @@ let make_view = function
       suffix' <= x' && (String.sub x (x' - suffix') suffix' = suffix) in
 
     let module M = struct
-      type t = DB.View.t
+      module DB_View = Irmin.View(DB)
+      type t = DB_View.t
       let create = DB.View.create
       let write t path contents =
         debug "+ %s" (Protocol.Path.to_string path);
         (try_lwt
-          DB.View.update t (value_of_filename path) (Sexp.to_string (Node.sexp_of_contents contents))
+          DB_View.update t (value_of_filename path) (Sexp.to_string (Node.sexp_of_contents contents))
         with e -> (error "%s" (Printexc.to_string e)); return ())
       let rm t path =
         debug "- %s" (Protocol.Path.to_string path);
         (try_lwt
-          DB.View.remove t (dir_of_filename path) >>= fun () ->
-          DB.View.remove t (value_of_filename path)
+          DB_View.remove t (dir_of_filename path) >>= fun () ->
+          DB_View.remove t (value_of_filename path)
         with e -> (error "%s" (Printexc.to_string e)); return ())
       let read t _ = fail (Failure "not implemented")
-      let merge t origin =
-        let origin = IrminOrigin.create "%s" origin in
-        DB.View.merge_path ~origin db [] t >>= function
+      let merge t commit_msg =
+        DB.View.merge_path (db commit_msg) [] t >>= function
         | `Ok () -> return ()
         | `Conflict msg ->
           error "Conflict while merging database view: %s (this shouldn't happen, all backend transactions are serialised)" msg;
@@ -113,4 +113,3 @@ let initialise kind =
   Lwt.wakeup persister_wakener p;
 
   return ()
-*)

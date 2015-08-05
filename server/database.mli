@@ -11,7 +11,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Lesser General Public License for more details.
  *)
-(*
+
 open Xenstore
 open Persistence
 
@@ -33,4 +33,3 @@ val initialise: S.persistence -> unit Lwt.t
 val immediate: ('a * 'view Transaction.side_effects) Lwt.t -> 'a Lwt.t
 (** [immediate t] persists the side effects associated with [t] immediately
     and returns the value *)
-*)
